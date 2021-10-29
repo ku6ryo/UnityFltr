@@ -1,0 +1,16 @@
+#pragma kernel CSMain
+
+RWTexture2D<float4> Result;
+float2 Center;
+float2 Size;
+
+[numthreads(8, 8, 1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if (Center.x - Size.x / 2 <= id.x & id.x <= Size.x / 2 + Center.x &
+        Center.y - Size.y / 2 <= id.y & id.y <= Size.y / 2 + Center.y) {
+      Result[id.xy] = float4(1, 1, 1, 1);
+    } else {
+      Result[id.xy] = float4(0, 0, 0, 1);
+    }
+}

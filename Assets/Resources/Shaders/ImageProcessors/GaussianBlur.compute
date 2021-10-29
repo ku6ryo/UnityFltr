@@ -1,0 +1,27 @@
+#pragma kernel CSMain
+
+Texture2D<float4> Input;
+Texture2D<float4> Mask;
+RWTexture2D<float4> Result;
+
+[numthreads(8, 8, 1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+  if (Mask[id.xy].x == 1) {
+    int size = 5;
+    float3x3 filter = (1.0 / 16.0) * float3x3(1, 2, 1, 2, 4, 2, 1, 2, 1);
+    float4 upperLeft = Input[id.xy + int2(-size, size)] * filter[0][2];
+    float4 up = Input[id.xy + int2(0, size)] * filter[1][2];
+    float4 upperRight = Input[id.xy + int2(size, size)] * filter[2][2];
+    float4 left = Input[id.xy + int2(-size, 0)] * filter[0][1];
+    float4 middle = Input[id.xy] * filter[1][1];
+    float4 right = Input[id.xy + int2(size, 0)] * filter[2][1];
+    float4 lowerLeft = Input[id.xy + int2(-size, -size)] * filter[0][0];
+    float4 down = Input[id.xy + int2(0, -size)] * filter[1][0];
+    float4 lowerRight = Input[id.xy + int2(size, -size)] * filter[2][0];
+    float4 blurred = upperLeft + up + upperRight + left + middle + right + lowerLeft + down + lowerRight;
+    Result[id.xy] = blurred;
+  } else {
+    Result[id.xy] = Input[id.xy];
+  }
+}
