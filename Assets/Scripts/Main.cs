@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using MediaPipe.BlazeFace;
+using Unity.Barracuda;
 
 namespace Fltr {
 public class Main : MonoBehaviour
@@ -18,6 +19,9 @@ public class Main : MonoBehaviour
     WebCamTexture cameraTexture;
 
     FaceDetector faceDetector;
+
+    [SerializeField]
+    RenderTexture videoRenderTexture;
 
     // Start is called before the first frame update
     void Start()
@@ -61,7 +65,7 @@ public class Main : MonoBehaviour
 
         h.ProcessImage(cameraTexture);
         crop.SetMask(h.texture);
-        crop.SetImage(dummyImage);
+        crop.SetImage(videoRenderTexture);
         crop.Process(cameraTexture, resultRenderTexture);
 
         edge.Generate(cameraTexture, maskTexture);
@@ -75,17 +79,24 @@ public class Main : MonoBehaviour
         faceDetector.ProcessImage(cameraTexture);
         Vector2 center = new Vector2();
         foreach (var dct in faceDetector.Detections) {
+          Debug.Log("a");
           center = new Vector2(
               dct.center.x * cameraTexture.width,
               dct.center.y * cameraTexture.height
           );
         }
+        Debug.Log("-------");
         circleMask.SetCenter(center);
         circleMask.SetRadius(100);
         circleMask.Generate(cameraTexture.width, cameraTexture.height, maskTexture);
+        crop.SetMask(maskTexture);
+        crop.SetImage(dummyImage);
+        crop.Process(resultRenderTexture2, resultRenderTexture);
+        /*
         monoColor.SetColor(new Color(0, 1, 1, 1));
         monoColor.SetMask(maskTexture);
         monoColor.Process(resultRenderTexture2, resultRenderTexture);
+        */
         finalImage.texture = resultRenderTexture;
     }
     void OnDestroy()
