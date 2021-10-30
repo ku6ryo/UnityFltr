@@ -155,7 +155,6 @@ MonoBehaviour:
   finalImage: {fileID: 1581724410}
   dummyImage: {fileID: 2800000, guid: 3b9bb7924514c064e811088d58ddac9c, type: 3}
   videoRenderTexture: {fileID: 8400000, guid: dfbbfb9950d2d9f48843d26dbbb02727, type: 2}
-  model: {fileID: 0}
 --- !u!4 &156279918
 Transform:
   m_ObjectHideFlags: 0
