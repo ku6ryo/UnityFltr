@@ -3,8 +3,8 @@
 // Input image size defined by neural network model.
 #define IMAGE_SIZE 256
 
-sampler2D _inputTexture;
-RWStructuredBuffer<float> _output;
+sampler2D Input;
+RWStructuredBuffer<float> Result;
 
 // Resize `_inputTexture` texture to network model input image size.
 [numthreads(8, 8, 1)]
@@ -18,11 +18,11 @@ void Preprocess(uint3 id : SV_DispatchThreadID)
     float2 duv_dy = float2(0, -1.0 / IMAGE_SIZE);
 
     // Texture sample
-    float3 rgb = tex2Dgrad(_inputTexture, uv, duv_dx, duv_dy).rgb;
+    float3 rgb = tex2Dgrad(Input, uv, duv_dx, duv_dy).rgb;
 
     // Generate output buffer
     uint offs = (id.y * IMAGE_SIZE + id.x) * 3;
-    _output[offs + 0] = rgb.r;
-    _output[offs + 1] = rgb.g;
-    _output[offs + 2] = rgb.b;
+    Result[offs + 0] = rgb.r;
+    Result[offs + 1] = rgb.g;
+    Result[offs + 2] = rgb.b;
 }

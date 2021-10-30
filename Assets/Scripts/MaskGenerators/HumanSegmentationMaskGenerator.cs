@@ -4,26 +4,17 @@ using Unity.Barracuda;
 namespace Fltr {
   public class HumanSegmentationMaskGenerator : System.IDisposable
   {
-        // Segmentation result texutre. Resolution is the same as input texture.
         public RenderTexture texture;
 
-        #region constant number
-        // Input and output image size defined by neural network model.
         const int IMAGE_SIZE = 256; 
-        // Input image channel defined by neural network model.
         const int IN_CH = 3;
-        // Output image channel defined by neural network model.
         const int OUT_CH = 1;
-        #endregion
 
-        #region private variables
         Model model;
         IWorker woker;
         ComputeShader preProcessShader;
         ComputeBuffer networkInputBuffer;
-        #endregion
 
-        #region public methods
         public HumanSegmentationMaskGenerator() {
             preProcessShader = (ComputeShader) Resources.Load("Shaders/ImageProcessors/HumanSegmentation/Preprocess");
             if (preProcessShader == null) {
@@ -44,8 +35,8 @@ namespace Fltr {
 
         public void ProcessImage(Texture inputTexture){
             // Resize `inputTexture` texture to network model image size.
-            preProcessShader.SetTexture(0, "_inputTexture", inputTexture);
-            preProcessShader.SetBuffer(0, "_output", networkInputBuffer);
+            preProcessShader.SetTexture(0, "Input", inputTexture);
+            preProcessShader.SetBuffer(0, "Result", networkInputBuffer);
             preProcessShader.Dispatch(0, IMAGE_SIZE / 8, IMAGE_SIZE / 8, 1);
 
             // Execute neural network model.
@@ -73,7 +64,6 @@ namespace Fltr {
             woker?.Dispose();
             texture?.Release();
         }
-        #endregion
 
         RenderTexture CopyOutputToTempRT(string name, int w, int h, int ch)
         {

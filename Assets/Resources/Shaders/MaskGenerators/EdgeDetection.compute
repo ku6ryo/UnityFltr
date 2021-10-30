@@ -1,0 +1,21 @@
+#pragma kernel CSMain
+
+Texture2D<float4> Input;
+RWTexture2D<float4> Result;
+float Sensitivity;
+
+[numthreads(8, 8, 1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float3 c0 = Input[id.xy + int2(-1, -1)];
+    float3 c8 = Input[id.xy + int2(1, 1)];
+
+    float3 c2 = Input[id.xy + int2(1, -1)];
+    float3 c6 = Input[id.xy + int2(-1, 1)];
+
+    float3 x = c8 - c0;
+    float3 y = c6 - c2;
+    float r = sqrt(dot(x, x) + dot(y, y));
+    float4 col = saturate(r * Sensitivity) * float4(1, 1, 1, 1);
+    Result[id.xy] = col;
+}
