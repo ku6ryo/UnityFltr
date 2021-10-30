@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using MediaPipe.BlazeFace;
 
 namespace Fltr {
 public class Main : MonoBehaviour
@@ -15,6 +16,8 @@ public class Main : MonoBehaviour
     private RenderTexture maskTexture2;
     private HumanSegmentationMaskGenerator h;
     WebCamTexture cameraTexture;
+
+    FaceDetector faceDetector;
 
     // Start is called before the first frame update
     void Start()
@@ -40,6 +43,8 @@ public class Main : MonoBehaviour
         maskTexture2 = new RenderTexture(resolutionX, resolutionY, 0);
         maskTexture2.enableRandomWrite = true;
         maskTexture2.Create();
+
+        faceDetector = new FaceDetector();
     }
 
     // Update is called once per frame
@@ -52,6 +57,7 @@ public class Main : MonoBehaviour
 
         var crop = new ImageCropProcessor();
         var monoColor = new MonoColorProcessor();
+        var circleMask = new CircleMaskGenerator();
 
         h.ProcessImage(cameraTexture);
         crop.SetMask(h.texture);
@@ -66,33 +72,27 @@ public class Main : MonoBehaviour
         monoColor.SetMask(maskTexture2);
         monoColor.Process(resultRenderTexture, resultRenderTexture2);
 
-        /*
-        var mask = new CircleMaskGenerator();
-        mask.SetCenter(new Vector2(cameraImage.width / 2 * Mathf.Sin(Time.time), cameraImage.height / 2));
-        mask.SetRadius(Mathf.Sin(Time.time) * 300);
-        mask.Generate(cameraImage.width, cameraImage.height, maskRenderTexture);
-
-        var mask2 = new RectangleMaskGenerator();
-        mask2.SetCenter(new Vector2(cameraImage.width / 2, cameraImage.height / 2));
-        mask2.Generate(cameraImage.width, cameraImage.height, maskRenderTexture);
-        var processor = (GaussianBlurProcessor) processors[0];
-        processor.SetMask(maskRenderTexture);
-        processor.Process(resultRenderTexture, resultRenderTexture2);
-
-        finalImage.texture = resultRenderTexture2; 
-        */
-        /*
-        var processor2 = (MonoColorProcessor) processors[1];
-        processor2.SetColor(new Color(1, 1, 0, 1));
-        processor2.SetMask(maskTexture)
-        processor2.Process(cameraTexture, resultRenderTexture);
-        */
-        finalImage.texture = maskTexture2; 
+        faceDetector.ProcessImage(cameraTexture);
+        Vector2 center = new Vector2();
+        foreach (var dct in faceDetector.Detections) {
+          center = new Vector2(
+              dct.center.x * cameraTexture.width,
+              dct.center.y * cameraTexture.height
+          );
+        }
+        circleMask.SetCenter(center);
+        circleMask.SetRadius(100);
+        circleMask.Generate(cameraTexture.width, cameraTexture.height, maskTexture);
+        monoColor.SetColor(new Color(0, 1, 1, 1));
+        monoColor.SetMask(maskTexture);
+        monoColor.Process(resultRenderTexture2, resultRenderTexture);
+        finalImage.texture = resultRenderTexture;
     }
     void OnDestroy()
     {
         if (cameraTexture != null) Destroy(cameraTexture);
         if (resultRenderTexture != null) Destroy(resultRenderTexture);
+        if (resultRenderTexture2 != null) Destroy(resultRenderTexture2);
         if (maskTexture != null) Destroy(maskTexture);
         if (maskTexture2 != null) Destroy(maskTexture2);
     }
